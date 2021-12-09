@@ -1,86 +1,139 @@
-from typing import Any, Callable
+from typing import Any
 
 
-class BinaryNode:
+class Node:
     value: Any
-    left_child: 'BinaryNode'
-    right_child: 'BinaryNode'
+    next: 'Node'
 
-    def __init__(self, value) -> None:
-        self.value = value
-        self.left_child = None
-        self.right_child = None
+    def __init__(self, element, next=None):
+        self.value = element
+        self.next = next
 
-    def is_leaf(self):
-        if self.left_child == None and self.right_child == None:
-            return True
-        return False
+class LinkedList:
+    head: Node
+    tail: Node
 
-    def add_left_child(self, value: Any):
-        self.left_child = BinaryNode(value)
+    def __init__(self):
+        self.head = None
+        self.tail = None
 
-    def add_right_child(self, value: Any):
-        self.right_child = BinaryNode(value)
+    def __len__(self):
+        count = 0
+        node = self.head
+        while node != None:
+            count += 1
+            node = node.next
+        return count
 
-    def traverse_in_order(self, visit: Callable[[Any], None]):
-        if self.left_child != None: self.left_child.traverse_in_order(visit)
-        visit(self)
-        if self.right_child != None: self.right_child.traverse_in_order(visit)
+    def __str__(self):
+        temp = ""
+        pointer = self.head
+        for x in range(len(self)):
+            if pointer.next != None:
+                temp += str(pointer.value) + " -> "
+            if pointer.next == None:
+                temp += str(pointer.value)
+            pointer = pointer.next
+        return temp
 
-    def traverse_post_order(self, visit: Callable[[Any], None]):
-        if self.left_child != None: self.left_child.traverse_post_order(visit)
-        if self.right_child != None: self.right_child.traverse_post_order(visit)
-        visit(self)
+     # metoda push(self, value: Any) -> None umieści nowy węzeł na początku listy
+    def push(self, element):
+        self.head = Node(element, self.head)
 
-    def traverse_pre_order(self, visit: Callable[[Any], None]):
-        visit(self)
-        if self.left_child != None: self.left_child.traverse_pre_order(visit)
-        if self.right_child != None: self.right_child.traverse_pre_order(visit)
+     # metoda append(self, value: Any) -> None umieści nowy węzeł na końcu listy
+    def append(self, element):
+            if self.head == None:
+                self.head = Node(element)
+            else:
+                pointer = self.head
+                while pointer.next != None:
+                    pointer = pointer.next
+                pointer.next = Node(element)
 
+     # metoda node(self, at: int) -> Node zwróci węzeł znajdujący się na wskazanej pozycji
+    def node(self, at: int) -> Node:
+        if at == len(self) - 1:
+            node = self.tail
+        if len(self) > at:
+            node = self.head
+            for x in range(at):
+                node = node.next
+        return node
 
-class BinaryTree:
-    root: BinaryNode
-    def __init__(self, value):
-        self.root = BinaryNode(value)
+    # metoda insert(self, value: Any, after: Node) -> None wstawi nowy węzeł tuż za węzłem wskazanym w parametrze
+    def insert(self, value: Any, after: Node) -> None:
+        if after == self.tail:
+            self.append(value)
+            return
+        if after == None:
+            return
+        new_node = Node(value)
+        new_node.next = after.next
+        after.next = new_node
 
-    def traverse_in_order(self, visit: Callable[[Any], None]):
-        self.root.traverse_in_order(visit)
-
-    def traverse_post_order(self, visit: Callable[[Any], None]):
-        self.root.traverse_post_order(visit)
-
-    def traverse_pre_order(self, visit: Callable[[Any], None]):
-        self.root.traverse_pre_order(visit)
-
-
-def bottom_line(tree: 'BinaryTree'):
-    x = []
-    root = tree.root
-    def bottom_view(node: 'BinaryNode'):
-        if node.left_child:
-            temp = node.left_child
-            if temp.right_child == None:
-                x.append(node.value)
-        elif node.right_child:
-            temp = node.right_child
-            if temp.left_child == None:
-                x.append(node.value)
+    # metoda pop(self) -> Any usunie pierwszy element z listy i go zwróci
+    def pop(self) -> Any:
+        if self.head == None:
+            return None
         else:
-            x.append(node.value)
-    root.traverse_in_order(bottom_view)
-    return x
+            del_node = self.head
+            self.head = del_node.next
+            return del_node.value
+
+    # metoda remove_last(self) -> Any usunie ostatni element z listy i go zwróci
+    def remove_last(self) -> Any:
+        node = self.node(len(self)-3)
+        self.tail = node
+        node = node.next
+        del_last = node.next
+        node.next = None
+        return del_last.value
+
+    # metoda remove(self, after: Node) -> Any usunie z listy następnik węzła przekazanego w parametrze
+    def remove(self, after: Node) -> Any:
+        node = self.head
+        if after.next == self.tail:
+            del_next = self.tail
+            self.remove_last()
+        else:
+            while node.next != after:
+                node = node.next
+            del_next = node.next
+            node.next = after.next
+        return del_next
 
 
-tree = BinaryTree(8)
+list_ = LinkedList()
+assert list_.head == None
+print(list_)
 
-tree.root.add_left_child(1)
-tree.root.left_child.add_left_child(2)
-tree.root.left_child.left_child.add_right_child(5)
-tree.root.left_child.left_child.add_left_child(4)
-tree.root.left_child.left_child.left_child.add_right_child(9)
-tree.root.left_child.left_child.left_child.add_left_child(8)
+list_.push(1)
+list_.push(0)
+assert str(list_) == '0 -> 1'
+print(list_)
 
-tree.root.left_child.add_right_child(3)
-tree.root.left_child.right_child.add_right_child(7)
+list_.append(9)
+list_.append(10)
+assert str(list_) == '0 -> 1 -> 9 -> 10'
+print(list_)
 
-print(bottom_line(tree))
+middle_node = list_.node(at=1)
+list_.insert(5, after=middle_node)
+assert str(list_) == '0 -> 1 -> 5 -> 9 -> 10'
+print(list_)
+
+first_element = list_.node(at=0)
+returned_first_element = list_.pop()
+assert first_element.value == returned_first_element
+
+last_element = list_.node(at=3)
+returned_last_element = list_.remove_last()
+assert last_element.value == returned_last_element
+
+assert str(list_) == '1 -> 5 -> 9'
+print(str(list_))
+
+second_node = list_.node(at=2)
+list_.remove(second_node)
+assert str(list_) == '1 -> 5'
+print(str(list_))
